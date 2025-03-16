@@ -13,5 +13,6 @@ object Main {
                 }
             }
         }
+        print("subcommand not found")
     }
 }

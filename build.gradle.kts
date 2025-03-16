@@ -7,9 +7,13 @@ plugins {
 //    alias(libs.plugins.vanniktech.maven.publish).apply(false)
     application
 }
+repositories {
+    mavenCentral()
+}
 dependencies {
     implementation(libs.mongodb.driver)
     implementation(libs.mongodb.bson)
+    implementation(libs.dotenv)
     implementation(libs.kotlinx.coroutines.core)
 }
 kotlin {

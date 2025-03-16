@@ -1,9 +1,12 @@
 package net.kigawa.fonsole.backup
 
-import net.kigawa.fonsole.Task
+import net.kigawa.fonsole.TaskBase
+import net.kigawa.fonsole.mongo.Database
 
-class BackupTask : Task {
+class BackupTask : TaskBase() {
     override fun execute() {
-        TODO("Not yet implemented")
+        Database.connect(config.connectionConfig) {
+
+        }
     }
 }

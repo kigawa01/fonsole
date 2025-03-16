@@ -9,5 +9,5 @@ data class ConnectionConfig(
     val port: Int,
     val databaseName: String,
 ) {
-    fun toUri(): URI = URI("mongodb+srv://$username:$password@$host:$port")
+    fun toUri(): URI = URI("mongodb://$username:$password@$host:$port")
 }
