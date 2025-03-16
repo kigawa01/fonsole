@@ -1,6 +1,19 @@
 package net.kigawa.fonsole
 
+import ch.qos.logback.classic.Logger
+import net.kigawa.fonsole.environment.EnvironmentConfig
+import org.slf4j.LoggerFactory
+
 object Main {
+    val logger = LoggerFactory.getLogger(this::class.java)
+    val config by lazy { EnvironmentConfig() }
+
+    init {
+        val root = LoggerFactory.getLogger("root") as Logger
+        root.level = config.logLevel
+        logger.info("log level: ${config.logLevel}")
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         val argList = args.toMutableList()
@@ -13,6 +26,6 @@ object Main {
                 }
             }
         }
-        print("subcommand not found")
+        logger.error("subcommand not found")
     }
 }

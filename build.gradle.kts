@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.mongodb.bson)
     implementation(libs.dotenv)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.logback)
 }
 kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)

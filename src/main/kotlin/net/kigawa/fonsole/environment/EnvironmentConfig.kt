@@ -1,5 +1,6 @@
 package net.kigawa.fonsole.environment
 
+import ch.qos.logback.classic.Level
 import io.github.cdimascio.dotenv.dotenv
 import net.kigawa.fonsole.mongo.ConnectionConfig
 
@@ -21,7 +22,7 @@ class EnvironmentConfig {
             databaseName = readString("MONGO_DATABASE_NAME", "fonsole")
         )
     }
-
+    val logLevel by lazy { Level.toLevel(readString("LOG_LEVEL", "INFO"), Level.INFO) }
     private fun readEnv(key: String) = dotenv.firstOrNull { it.key == key }?.value
 
     private fun readString(key: String, defaultValue: String? = null): String =
