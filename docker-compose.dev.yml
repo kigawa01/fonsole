@@ -1,5 +1,7 @@
 services:
   mongo-dev:
+    networks:
+      - mongo_network
     image: mongo:4.4
     environment:
       MONGO_INITDB_ROOT_USERNAME: 'mongo'
@@ -19,6 +21,25 @@ services:
     ports:
       - target: 27017
         published: 27017
+  mongo-express-dev:
+    networks:
+      - mongo_network
+    image: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: mongo
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mongo
+      ME_CONFIG_MONGODB_SERVER: mongo-dev
+      ME_CONFIG_BASICAUTH_USERNAME: mongo
+      ME_CONFIG_BASICAUTH_PASSWORD: mongo
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:mongo@mongo-dev:27017/
+    depends_on:
+      - mongo-dev
 volumes:
   db-data:
   config-data:
+networks:
+  mongo_network:
+    driver: bridge

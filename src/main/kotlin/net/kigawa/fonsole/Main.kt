@@ -15,6 +15,8 @@ object Main {
     init {
         val root = LoggerFactory.getLogger("root") as Logger
         root.level = config.logLevel
+        val mongo = LoggerFactory.getLogger("org.mongodb") as Logger
+        mongo.level = config.mongoLogLevel
         logger.info("log level: ${config.logLevel}")
     }
 

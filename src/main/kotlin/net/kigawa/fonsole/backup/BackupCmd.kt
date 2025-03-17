@@ -5,7 +5,7 @@ import net.kigawa.fonsole.Main
 import net.kigawa.fonsole.editor.BackupEditor
 import net.kigawa.fonsole.editor.ProjectEditor
 import net.kigawa.fonsole.model.Client
-import net.kigawa.kutil.domain.result.SuccessResult
+import org.bson.types.ObjectId
 
 class BackupCmd : CmdBase() {
     override suspend fun execute() {
@@ -14,9 +14,12 @@ class BackupCmd : CmdBase() {
             val projectEditor = ProjectEditor(database, Main.logger, config.backupConfig)
             projectEditor.createProject()
             val backupEditor = BackupEditor(config.backupConfig, Main.logger, database)
-            val backupDocument = backupEditor.createBackupDocument()
-            if (backupDocument !is SuccessResult) return@connect
-            backupEditor.insertBackupDocument(backupDocument.result)
+
+            val backupDocumentId = ObjectId()
+            projectEditor.addBackupId(backupDocumentId)
+            backupEditor.insertBackupDocument(backupDocumentId)
+
+            backupEditor.uploadBackup(backupDocumentId)
         }
     }
 }

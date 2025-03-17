@@ -25,6 +25,7 @@ class EnvironmentConfig {
         )
     }
     val logLevel by lazy { Level.toLevel(readString("LOG_LEVEL", "INFO"), Level.INFO) }
+    val mongoLogLevel by lazy { Level.toLevel(readString("MONGO_LOG_LEVEL", "INFO"), Level.INFO) }
 
     val backupConfig by lazy {
         BackupConfig(

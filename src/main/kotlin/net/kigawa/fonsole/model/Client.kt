@@ -1,36 +1,28 @@
 package net.kigawa.fonsole.model
 
-import com.mongodb.kotlin.client.coroutine.ClientSession
 import com.mongodb.kotlin.client.coroutine.MongoClient
+import com.mongodb.reactivestreams.client.MongoClients
 import net.kigawa.fonsole.mongo.ConnectionConfig
 import org.slf4j.Logger
 
 class Client(
     connectionConfig: ConnectionConfig,
-    private val client: MongoClient,
+    client: MongoClient,
     private val logger: Logger,
+    syncClient: com.mongodb.reactivestreams.client.MongoClient,
 ) {
-    val database = client.getDatabase(connectionConfig.databaseName)
+    val database = Database(
+        client.getDatabase(connectionConfig.databaseName), syncClient.getDatabase(connectionConfig.databaseName)
+    )
 
     companion object {
         suspend fun connect(connectionConfig: ConnectionConfig, logger: Logger, block: suspend (Client) -> Unit) {
-            MongoClient.create(connectionConfig.toUri().toString()).use {
-                block(Client(connectionConfig, it, logger))
+            MongoClients.create(connectionConfig.toUri().toString()).use { syncClient ->
+                MongoClient.create(connectionConfig.toUri().toString()).use { client ->
+                    block(Client(connectionConfig, client, logger, syncClient))
+                }
             }
         }
     }
 
-    suspend fun transaction(block: suspend (ClientSession) -> Unit) {
-        val session = client.startSession()
-        try {
-            session.startTransaction()
-            block(session)
-            session.commitTransaction()
-        } catch (e: Throwable) {
-            session.abortTransaction()
-            if (e is TransactionAbortException) return
-            logger.error("transaction error", e)
-            throw e
-        }
-    }
 }

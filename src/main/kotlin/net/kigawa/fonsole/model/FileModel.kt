@@ -1,5 +1,7 @@
 package net.kigawa.fonsole.model
 
+import org.bson.types.ObjectId
+
 data class FileModel(
-    val name: String,
+    val id: ObjectId,
 )
