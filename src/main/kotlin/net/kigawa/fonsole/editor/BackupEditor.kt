@@ -63,10 +63,14 @@ class BackupEditor(
             return ErrorResult(Unit)
         }
         val directory = uploadDirectory(dir).await()
+        logger.debug("upload directory {} {}", backupDocumentId, directory)
         collection.findOneAndUpdate(
-            Filters.eq(BackupDocument::id.name, backupDocumentId),
-            Updates.set(BackupDocument::rootDirectory.name, directory)
-        )
+            Filters.eq("_id", backupDocumentId),
+            Updates.combine(
+                Updates.set(BackupDocument::rootDirectory.name, directory),
+                Updates.set(BackupDocument::endDate.name, LocalDateTime.now()),
+            )
+        ).also { logger.debug("update root directory {}", it) }
         return SuccessResult(Unit)
     }
 
