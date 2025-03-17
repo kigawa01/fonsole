@@ -38,3 +38,4 @@ out/
 
 ### User ###
 /.env.local
+/test/

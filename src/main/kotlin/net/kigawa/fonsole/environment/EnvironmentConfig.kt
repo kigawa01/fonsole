@@ -2,11 +2,18 @@ package net.kigawa.fonsole.environment
 
 import ch.qos.logback.classic.Level
 import io.github.cdimascio.dotenv.dotenv
-import net.kigawa.fonsole.backup.BackupConfig
-import net.kigawa.fonsole.mongo.ConnectionConfig
-import java.io.File
+import net.kigawa.fonsole.config.ConnectionConfig
+import net.kigawa.fonsole.config.ProjectConfig
+import net.kigawa.fonsole.config.RestoreConfig
+import java.nio.file.Path
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class EnvironmentConfig {
+    companion object {
+        private val datetimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    }
+
     val dotenv by lazy {
         dotenv {
             ignoreIfMissing = true
@@ -27,10 +34,15 @@ class EnvironmentConfig {
     val logLevel by lazy { Level.toLevel(readString("LOG_LEVEL", "INFO"), Level.INFO) }
     val mongoLogLevel by lazy { Level.toLevel(readString("MONGO_LOG_LEVEL", "INFO"), Level.INFO) }
 
-    val backupConfig by lazy {
-        BackupConfig(
-            directory = readFile("BACKUP_PATH"),
+    val projectConfig by lazy {
+        ProjectConfig(
+            directory = readPath("BACKUP_PATH"),
             projectName = readString("PROJECT_NAME"),
+        )
+    }
+    val restoreConfig by lazy {
+        RestoreConfig(
+            restoreDate = readDate("RESTORE_DATE")
         )
     }
 
@@ -43,7 +55,13 @@ class EnvironmentConfig {
     private fun readInt(key: String, defaultValue: Int? = null): Int =
         readEnv(key)?.toInt() ?: defaultValue ?: throw IllegalArgumentException("$key is not defined")
 
-    private fun readFile(key: String, defaultValue: File? = null): File =
-        readEnv(key)?.let { File(it) } ?: defaultValue ?: throw IllegalArgumentException("$key is not defined")
+    private fun readPath(key: String, defaultValue: Path? = null): Path =
+        readEnv(key)?.let { Path.of("", it) } ?: defaultValue ?: throw IllegalArgumentException("$key is not defined")
+
+    private fun readDate(key: String, defaultValue: LocalDateTime? = null): LocalDateTime =
+        readEnv(key)?.let { LocalDateTime.parse(it, datetimeFormatter) } ?: defaultValue
+        ?: throw IllegalArgumentException(
+            "$key is not defined"
+        )
 
 }

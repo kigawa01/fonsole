@@ -1,7 +1,7 @@
 package net.kigawa.fonsole.model
 
-data class Directory(
+data class DirectoryModel(
     val name: String,
     val files: List<FileModel>,
-    val subDirectories: List<Directory>,
+    val subDirectories: List<DirectoryModel>,
 )

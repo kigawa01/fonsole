@@ -18,6 +18,7 @@ object Main {
         val mongo = LoggerFactory.getLogger("org.mongodb") as Logger
         mongo.level = config.mongoLogLevel
         logger.info("log level: ${config.logLevel}")
+        logger.info("mongo log level: ${config.mongoLogLevel}")
     }
 
     @JvmStatic

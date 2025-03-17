@@ -1,4 +1,4 @@
-package net.kigawa.fonsole.mongo
+package net.kigawa.fonsole.config
 
 import java.net.URI
 

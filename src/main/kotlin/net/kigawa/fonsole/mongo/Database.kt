@@ -1,4 +1,4 @@
-package net.kigawa.fonsole.model
+package net.kigawa.fonsole.mongo
 
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.mongodb.kotlin.client.coroutine.MongoDatabase

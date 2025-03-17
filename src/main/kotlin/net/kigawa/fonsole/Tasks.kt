@@ -1,12 +1,15 @@
 package net.kigawa.fonsole
 
-import net.kigawa.fonsole.backup.BackupCmd
+import net.kigawa.fonsole.cmd.BackupCmd
+import net.kigawa.fonsole.cmd.Cmd
+import net.kigawa.fonsole.cmd.RestoreCmd
 
 enum class Tasks(
     val command: String,
     val newTask: () -> Cmd,
 ) {
-    Backup("backup", ::BackupCmd),
+    BACKUP("backup", ::BackupCmd),
+    RESTORE("restore", ::RestoreCmd),
     ;
 
     suspend fun execute() = newTask().execute()
