@@ -1,10 +1,7 @@
-package net.kigawa.fonsole.environment
+package net.kigawa.fonsole.config
 
 import ch.qos.logback.classic.Level
 import io.github.cdimascio.dotenv.dotenv
-import net.kigawa.fonsole.config.ConnectionConfig
-import net.kigawa.fonsole.config.ProjectConfig
-import net.kigawa.fonsole.config.RestoreConfig
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -28,7 +25,8 @@ class EnvironmentConfig {
             password = readString("MONGO_PASSWORD"),
             host = readString("MONGO_HOST", "localhost"),
             port = readInt("MONGO_PORT", 27017),
-            databaseName = readString("MONGO_DATABASE_NAME", "fonsole")
+            databaseName = readString("MONGO_DATABASE_NAME", "fonsole"),
+            maxRequest = readInt("MAX_REQUEST", 10)
         )
     }
     val logLevel by lazy { Level.toLevel(readString("LOG_LEVEL", "INFO"), Level.INFO) }

@@ -3,12 +3,12 @@ package net.kigawa.fonsole.cmd
 import net.kigawa.fonsole.Main
 import net.kigawa.fonsole.editor.BackupEditor
 import net.kigawa.fonsole.editor.ProjectEditor
-import net.kigawa.fonsole.model.Client
+import net.kigawa.fonsole.mongo.Client
 import net.kigawa.kutil.domain.result.SuccessResult
 
 class RestoreCmd : CmdBase() {
     override suspend fun execute() {
-        Client.Companion.connect(config.connectionConfig, Main.logger) {
+        Client.Companion.connect(config.connectionConfig) {
             val database = it.database
             val projectEditor = ProjectEditor(database, Main.logger, config.projectConfig)
             val backups = projectEditor.findBackups()

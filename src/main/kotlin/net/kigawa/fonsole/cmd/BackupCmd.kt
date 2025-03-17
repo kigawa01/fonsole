@@ -3,12 +3,12 @@ package net.kigawa.fonsole.cmd
 import net.kigawa.fonsole.Main
 import net.kigawa.fonsole.editor.BackupEditor
 import net.kigawa.fonsole.editor.ProjectEditor
-import net.kigawa.fonsole.model.Client
+import net.kigawa.fonsole.mongo.Client
 import org.bson.types.ObjectId
 
 class BackupCmd : CmdBase() {
     override suspend fun execute() {
-        Client.Companion.connect(config.connectionConfig, Main.logger) {
+        Client.Companion.connect(config.connectionConfig) {
             val database = it.database
             val projectEditor = ProjectEditor(database, Main.logger, config.projectConfig)
             projectEditor.createProject()

@@ -8,6 +8,7 @@ data class ConnectionConfig(
     val host: String,
     val port: Int,
     val databaseName: String,
+    val maxRequest: Int
 ) {
     fun toUri(): URI = URI("mongodb://$username:$password@$host:$port")
 }

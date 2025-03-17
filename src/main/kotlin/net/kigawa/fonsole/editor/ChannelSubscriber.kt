@@ -31,6 +31,7 @@ class ChannelSubscriber<T>(
 
     override fun onError(t: Throwable?) {
         logger.error(t?.message, t)
+        channel.close()
     }
 
     override fun onComplete() {

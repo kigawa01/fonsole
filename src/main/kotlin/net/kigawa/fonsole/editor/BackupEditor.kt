@@ -46,15 +46,18 @@ class BackupEditor(
         return CoroutineScope(currentCoroutineContext()).async {
             logger.debug("open file {}", file)
             Files.newByteChannel(file).use {
-                val uploadSubscriber = ChannelSubscriber<ObjectId>(logger, capacity = 1)
-                logger.info("upload file ${file.name}")
-                val fileReadPublisher = FileReadPublisher(it,logger)
-                bucket.uploadFromPublisher(file.name, fileReadPublisher).subscribe(uploadSubscriber)
-                withContext(Dispatchers.IO) {
-                    fileReadPublisher.write()
-                }
-                FileModel(uploadSubscriber.receive(), file.name).also {
-                    uploadSubscriber.join()
+                bucket.request {
+                    val uploadSubscriber = ChannelSubscriber<ObjectId>(logger, capacity = 1)
+                    logger.info("upload file ${file.name}")
+                    val fileReadPublisher = FileReadPublisher(it, logger)
+                    uploadFromPublisher(file.name, fileReadPublisher).subscribe(uploadSubscriber)
+                    withContext(Dispatchers.IO) {
+                        fileReadPublisher.write()
+                    }
+                    FileModel(uploadSubscriber.receive(), file.name).also {
+                        uploadSubscriber.join()
+                        logger.info("uploaded file {}", it)
+                    }
                 }
             }
         }
@@ -68,36 +71,42 @@ class BackupEditor(
         }
         val directory = uploadDirectory(dir).await()
         logger.debug("upload directory {} {}", backupDocumentId, directory)
-        collection.findOneAndUpdate(
-            Filters.eq("_id", backupDocumentId),
-            Updates.combine(
-                Updates.set(BackupDocument::rootDirectory.name, directory),
-                Updates.set(BackupDocument::endDate.name, LocalDateTime.now()),
-            )
-        ).also { logger.debug("update root directory {}", it) }
+        collection.request {
+            findOneAndUpdate(
+                Filters.eq("_id", backupDocumentId),
+                Updates.combine(
+                    Updates.set(BackupDocument::rootDirectory.name, directory),
+                    Updates.set(BackupDocument::endDate.name, LocalDateTime.now()),
+                )
+            ).also { logger.debug("update root directory {}", it) }
+        }
         return SuccessResult(Unit)
     }
 
     suspend fun insertBackupDocument(backupDocumentId: ObjectId) {
-        collection.insertOne(
-            BackupDocument(
-                id = backupDocumentId,
-                startDate = LocalDateTime.now()
+        collection.request {
+            insertOne(
+                BackupDocument(
+                    id = backupDocumentId,
+                    startDate = LocalDateTime.now()
+                )
             )
-        )
+        }
     }
 
     suspend fun findBackup(
         date: LocalDateTime, backups: List<ObjectId>,
     ): Result<BackupDocument, Unit> {
-        val document = collection.find(
-            Filters.and(
-                Filters.lt<LocalDateTime>(BackupDocument::endDate.name, date),
-                Filters.`in`<ObjectId>("_id", backups)
-            ),
-        ).sort(Sorts.descending(BackupDocument::endDate.name))
-            .limit(1)
-            .singleOrNull()
+        val document = collection.request {
+            find(
+                Filters.and(
+                    Filters.lt<LocalDateTime>(BackupDocument::endDate.name, date),
+                    Filters.`in`<ObjectId>("_id", backups)
+                ),
+            ).sort(Sorts.descending(BackupDocument::endDate.name))
+                .limit(1)
+                .singleOrNull()
+        }
         if (document == null) {
             logger.error("backup is not exist")
             return ErrorResult(Unit)
@@ -129,19 +138,21 @@ class BackupEditor(
 
     suspend fun downloadFile(fileModel: FileModel, file: Path): Deferred<Result<Unit, Unit>> {
         return CoroutineScope(currentCoroutineContext()).async {
-            val subscriber = ChannelSubscriber<ByteBuffer>(logger)
-            val publisher = bucket.downloadToPublisher(fileModel.id)
-            publisher.subscribe(subscriber)
-            file.createFile()
-            Files.newByteChannel(file.toAbsolutePath(), StandardOpenOption.WRITE).use {
-                withContext(Dispatchers.IO) {
-                    for (byteBuffer in subscriber) {
-                        it.write(byteBuffer)
+            bucket.request {
+                val subscriber = ChannelSubscriber<ByteBuffer>(logger)
+                val publisher = downloadToPublisher(fileModel.id)
+                publisher.subscribe(subscriber)
+                file.createFile()
+                Files.newByteChannel(file.toAbsolutePath(), StandardOpenOption.WRITE).use {
+                    withContext(Dispatchers.IO) {
+                        for (byteBuffer in subscriber) {
+                            it.write(byteBuffer)
+                        }
                     }
                 }
+                logger.info("created file ${file.name}")
+                SuccessResult(Unit)
             }
-            logger.info("created file ${file.name}")
-            SuccessResult(Unit)
         }
     }
 }

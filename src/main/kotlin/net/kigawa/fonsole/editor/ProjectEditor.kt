@@ -25,32 +25,42 @@ class ProjectEditor(
     suspend fun createProject() {
         logger.info("setup unique index")
         val indexOptions = IndexOptions().unique(true)
-        collection.createIndex(
-            Indexes.descending(ProjectDocument::name.name), indexOptions
-        )
+        collection.request {
+            createIndex(
+                Indexes.descending(ProjectDocument::name.name), indexOptions
+            )
+        }
         logger.info("check project is exist")
-        val documents = collection.find(
-            Filters.eq(ProjectDocument::name.name, projectConfig.projectName)
-        )
+        val documents = collection.request {
+            find(
+                Filters.eq(ProjectDocument::name.name, projectConfig.projectName)
+            )
+        }
         if (documents.firstOrNull() != null) return
         logger.info("create project")
-        collection.insertOne(
-            ProjectDocument(
-                name = projectConfig.projectName,
-                backupIds = listOf()
+        collection.request {
+            insertOne(
+                ProjectDocument(
+                    name = projectConfig.projectName,
+                    backupIds = listOf()
+                )
             )
-        )
+        }
     }
 
     suspend fun addBackupId(backupDocumentId: ObjectId) {
-        collection.findOneAndUpdate(
-            Filters.eq(ProjectDocument::name.name, projectConfig.projectName),
-            Updates.push(ProjectDocument::backupIds.name, backupDocumentId)
-        )
+        collection.request {
+            findOneAndUpdate(
+                Filters.eq(ProjectDocument::name.name, projectConfig.projectName),
+                Updates.push(ProjectDocument::backupIds.name, backupDocumentId)
+            )
+        }
     }
 
     suspend fun findBackups(): Result<List<ObjectId>, Unit> {
-        val document = collection.find(Filters.eq(ProjectDocument::name.name, projectConfig.projectName)).singleOrNull()
+        val document = collection.request {
+            find(Filters.eq(ProjectDocument::name.name, projectConfig.projectName)).singleOrNull()
+        }
         if (document == null) {
             logger.error("project is not single")
             return ErrorResult(Unit)

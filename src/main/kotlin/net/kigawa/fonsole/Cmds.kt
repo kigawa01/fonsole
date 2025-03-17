@@ -4,7 +4,7 @@ import net.kigawa.fonsole.cmd.BackupCmd
 import net.kigawa.fonsole.cmd.Cmd
 import net.kigawa.fonsole.cmd.RestoreCmd
 
-enum class Tasks(
+enum class Cmds(
     val command: String,
     val newTask: () -> Cmd,
 ) {

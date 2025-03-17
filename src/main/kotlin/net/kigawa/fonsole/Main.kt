@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import net.kigawa.fonsole.environment.EnvironmentConfig
+import net.kigawa.fonsole.config.EnvironmentConfig
 import org.slf4j.LoggerFactory
 
 object Main {
@@ -26,10 +26,10 @@ object Main {
         val argList = args.toMutableList()
         while (argList.isNotEmpty()) {
             val first = argList.removeFirst()
-            Tasks.entries.forEach {
-                if (first == it.command) {
+            Cmds.entries.forEach { cmd ->
+                if (first == cmd.command) {
                     val job = CoroutineScope(Dispatchers.Default).launch {
-                        it.execute()
+                        cmd.execute()
                     }
                     runBlocking { job.join() }
                     return
