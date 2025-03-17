@@ -1,6 +1,10 @@
 package net.kigawa.fonsole
 
 import ch.qos.logback.classic.Logger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.kigawa.fonsole.environment.EnvironmentConfig
 import org.slf4j.LoggerFactory
 
@@ -21,7 +25,10 @@ object Main {
             val first = argList.removeFirst()
             Tasks.entries.forEach {
                 if (first == it.command) {
-                    it.execute()
+                    val job = CoroutineScope(Dispatchers.Default).launch {
+                        it.execute()
+                    }
+                    runBlocking { job.join() }
                     return
                 }
             }

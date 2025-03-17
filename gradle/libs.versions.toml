@@ -6,7 +6,7 @@ datetime-version = "0.6.1"
 nexus-publish = "2.0.0-rc-1"
 dokka = "1.9.20"
 vanniktech-maven-publish = "0.29.0"
-mongodb-version="5.3.0"
+mongodb-version="5.3.1"
 dotenv-version="6.5.1"
 logback-version="1.5.17"
 

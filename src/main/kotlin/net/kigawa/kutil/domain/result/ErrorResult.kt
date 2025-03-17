@@ -1,8 +1,8 @@
 package net.kigawa.kutil.domain.result
 
 @Suppress("unused")
-class ErrorResult<E>(private val err: E) : Result<Any, E>() {
+class ErrorResult<T, E>(val err: E) : Result<T, E>() {
     override fun getErrorOrNull(): E = err
 
-    override fun getResultOrNull(): Any? = null
+    override fun getResultOrNull(): T? = null
 }

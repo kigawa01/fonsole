@@ -1,6 +1,6 @@
 package net.kigawa.fonsole
 
-abstract class TaskBase : Task {
+abstract class CmdBase : Cmd {
     val config
         get() = Main.config
 }
