@@ -3,13 +3,11 @@ package net.kigawa.fonsole.editor
 import kotlinx.coroutines.channels.Channel
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
-import org.slf4j.Logger
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
 
 class FileReadPublisher(
     private val byteChannel: ByteChannel,
-    private val logger: Logger,
 ) : Publisher<ByteBuffer> {
     val request = Channel<Long>(capacity = 3)
     lateinit var subscriber: Subscriber<in ByteBuffer>
@@ -22,7 +20,7 @@ class FileReadPublisher(
     suspend fun write() {
         for (request in request) {
             repeat(request.toInt()) {
-                val buffer = ByteBuffer.allocate(1024)
+                val buffer = ByteBuffer.allocate(1024 * 1024)
                 val cnt = byteChannel.read(buffer)
                 if (cnt < 0) {
                     subscriber.onComplete()

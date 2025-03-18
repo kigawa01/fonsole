@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 plugins {
     //trick: for the same plugin versions in all sub-modules
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.shadow)
 //    alias(libs.plugins.dokka).apply(false)
 //    alias(libs.plugins.vanniktech.maven.publish).apply(false)
     application

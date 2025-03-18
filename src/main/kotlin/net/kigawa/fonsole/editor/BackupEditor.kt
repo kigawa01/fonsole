@@ -49,7 +49,7 @@ class BackupEditor(
                 bucket.request {
                     val uploadSubscriber = ChannelSubscriber<ObjectId>(logger, capacity = 1)
                     logger.info("upload file ${file.name}")
-                    val fileReadPublisher = FileReadPublisher(it, logger)
+                    val fileReadPublisher = FileReadPublisher(it)
                     uploadFromPublisher(file.name, fileReadPublisher).subscribe(uploadSubscriber)
                     withContext(Dispatchers.IO) {
                         fileReadPublisher.write()

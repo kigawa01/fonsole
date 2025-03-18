@@ -23,19 +23,22 @@ object Main {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val argList = args.toMutableList()
-        while (argList.isNotEmpty()) {
-            val first = argList.removeFirst()
-            Cmds.entries.forEach { cmd ->
-                if (first == cmd.command) {
-                    val job = CoroutineScope(Dispatchers.Default).launch {
-                        cmd.execute()
+            val argList = args.toMutableList()
+            while (argList.isNotEmpty()) {
+                val first = argList.removeFirst()
+                Cmds.entries.forEach { cmd ->
+                    if (first == cmd.command) {
+                        val job = CoroutineScope(Dispatchers.Default).launch {
+//                            repeat(1){
+        repeat(24 * 31 * 12){
+                            cmd.execute()
+                            }
+                        }
+                        runBlocking { job.join() }
+                        return
                     }
-                    runBlocking { job.join() }
-                    return
                 }
             }
+            logger.error("subcommand not found")
         }
-        logger.error("subcommand not found")
-    }
 }

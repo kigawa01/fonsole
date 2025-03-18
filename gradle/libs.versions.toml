@@ -9,6 +9,7 @@ vanniktech-maven-publish = "0.29.0"
 mongodb-version="5.3.1"
 dotenv-version="6.5.1"
 logback-version="1.5.17"
+shadow-version="8.1.1"
 
 [libraries]
 kotlin-stdlib-js = { module = "org.jetbrains.kotlin:kotlin-stdlib-js", version.ref = "kotlin-version" }
@@ -30,3 +31,4 @@ sonatype-central-upload = { id = "cl.franciscosolis.sonatype-central-upload", ve
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-maven-publish" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow-version" }
