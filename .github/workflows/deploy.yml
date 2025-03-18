@@ -43,7 +43,7 @@ jobs:
       - uses: docker/login-action@v3
         if: github.ref == matrix.branch.ref
         with:
-          registry: harbor.kigawa.net
+#          registry: harbor.kigawa.net
           username: ${{ env.harborUser }}
           password: ${{ secrets.DOCKER_PASS }}
 
