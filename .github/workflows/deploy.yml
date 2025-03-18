@@ -1,5 +1,5 @@
 
-name: deploy maven central
+name: deploy
 
 on:
   push:
