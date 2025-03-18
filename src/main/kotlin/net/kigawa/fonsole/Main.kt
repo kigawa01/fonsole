@@ -29,10 +29,7 @@ object Main {
                 Cmds.entries.forEach { cmd ->
                     if (first == cmd.command) {
                         val job = CoroutineScope(Dispatchers.Default).launch {
-//                            repeat(1){
-        repeat(24 * 31 * 12){
                             cmd.execute()
-                            }
                         }
                         runBlocking { job.join() }
                         return

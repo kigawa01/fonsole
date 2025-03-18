@@ -11,4 +11,5 @@ data class BackupDocument(
     val startDate: LocalDateTime,
     val rootDirectory: DirectoryModel? = null,
     val endDate: LocalDateTime? = null,
+    val removeRequest: Boolean = false,
 )

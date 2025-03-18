@@ -4,7 +4,10 @@ import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Sorts
 import com.mongodb.client.model.Updates
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.toList
 import net.kigawa.fonsole.config.ProjectConfig
 import net.kigawa.fonsole.document.BackupDocument
 import net.kigawa.fonsole.model.DirectoryModel
@@ -101,7 +104,8 @@ class BackupEditor(
             find(
                 Filters.and(
                     Filters.lt<LocalDateTime>(BackupDocument::endDate.name, date),
-                    Filters.`in`<ObjectId>("_id", backups)
+                    Filters.`in`<ObjectId>("_id", backups),
+                    Filters.not(Filters.eq(BackupDocument::removeRequest.name, true))
                 ),
             ).sort(Sorts.descending(BackupDocument::endDate.name))
                 .limit(1)
@@ -125,7 +129,9 @@ class BackupEditor(
         return result.await()
     }
 
-    suspend fun downloadDirectory(directoryModel: DirectoryModel, directory: Path): Deferred<Result<Unit, Unit>> {
+    private suspend fun downloadDirectory(
+        directoryModel: DirectoryModel, directory: Path,
+    ): Deferred<Result<Unit, Unit>> {
         return CoroutineScope(currentCoroutineContext()).async {
             directory.createDirectories()
             val dirs = directoryModel.subDirectories.map { downloadDirectory(it, directory.resolve(it.name)) }
@@ -136,7 +142,7 @@ class BackupEditor(
         }
     }
 
-    suspend fun downloadFile(fileModel: FileModel, file: Path): Deferred<Result<Unit, Unit>> {
+    private suspend fun downloadFile(fileModel: FileModel, file: Path): Deferred<Result<Unit, Unit>> {
         return CoroutineScope(currentCoroutineContext()).async {
             bucket.request {
                 val subscriber = ChannelSubscriber<ByteBuffer>(logger)
@@ -152,6 +158,71 @@ class BackupEditor(
                 }
                 logger.info("created file ${file.name}")
                 SuccessResult(Unit)
+            }
+        }
+    }
+
+    suspend fun markToRemove(
+        backups: List<ObjectId>,
+    ) {
+        collection.request {
+            val now = LocalDateTime.now()
+            var nextLatestDate: LocalDateTime = now.minusDays(2)
+            find(
+                Filters.and(
+                    Filters.or(
+                        Filters.lt<LocalDateTime>(BackupDocument::endDate.name, nextLatestDate),
+                        Filters.eq<LocalDateTime>(BackupDocument::endDate.name, null),
+                    ),
+                    Filters.lt<LocalDateTime>(BackupDocument::startDate.name, nextLatestDate),
+                    Filters.`in`<ObjectId>("_id", backups),
+                    Filters.not(Filters.eq(BackupDocument::removeRequest.name, true))
+                ),
+            ).sort(Sorts.descending(BackupDocument::endDate.name))
+                .filter {
+                    if (it.endDate == null) return@filter true
+                    if (it.endDate > nextLatestDate) return@filter true
+                    if (it.endDate > now.minusMonths(1)) nextLatestDate = it.endDate.minusDays(1)
+                    else if (it.endDate > now.minusMonths(3)) nextLatestDate = it.endDate.minusDays(7)
+                    else nextLatestDate = it.endDate.minusMonths(1)
+                    return@filter false
+                }
+        }.let {
+            collection.request {
+                updateMany(
+                    Filters.`in`<ObjectId>("_id", it.map { it.id }.toList()),
+                    Updates.set(BackupDocument::removeRequest.name, true)
+                )
+            }
+        }
+    }
+
+    suspend fun removeBackup() {
+        collection.request {
+            find(Filters.eq(BackupDocument::removeRequest.name, true))
+        }.collect {
+            if (it.rootDirectory != null) removeDir(it.rootDirectory).join()
+            collection.request {
+                deleteOne(Filters.eq("_id", it.id))
+            }
+        }
+    }
+
+    private suspend fun removeDir(directoryModel: DirectoryModel): Job {
+        return CoroutineScope(currentCoroutineContext()).launch {
+            val dirs = directoryModel.subDirectories.map { removeDir(it) }
+            val files = directoryModel.files.map { removeFile(it) }
+            dirs.forEach { it.join() }
+            files.forEach { it.join() }
+        }
+    }
+
+    private suspend fun removeFile(fileModel: FileModel): Job {
+        return CoroutineScope(currentCoroutineContext()).launch {
+            bucket.request {
+                val subscriber = ChannelSubscriber<Any>(logger)
+                delete(fileModel.id).subscribe(subscriber)
+                subscriber.join()
             }
         }
     }
