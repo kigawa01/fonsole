@@ -5,7 +5,6 @@ import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.client.model.Updates
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.singleOrNull
 import net.kigawa.fonsole.config.ProjectConfig
 import net.kigawa.fonsole.document.ProjectDocument
 import net.kigawa.fonsole.mongo.Database
@@ -59,7 +58,7 @@ class ProjectEditor(
 
     suspend fun findBackups(): Result<List<ObjectId>, Unit> {
         val document = collection.request {
-            find(Filters.eq(ProjectDocument::name.name, projectConfig.projectName)).singleOrNull()
+            find(Filters.eq(ProjectDocument::name.name, projectConfig.projectName)).firstOrNull()
         }
         if (document == null) {
             logger.error("project is not single")
