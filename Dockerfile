@@ -8,4 +8,4 @@ RUN gradle run shadowJar
 FROM openjdk:21-bookworm AS runner
 WORKDIR /app
 COPY --from=builder /app/build/libs/fonsole-all.jar /app
-ENTRYPOINT ["java","-jar", "/app/fonsole-all.jar"]
+ENTRYPOINT ["exec","java","-jar", "/app/fonsole-all.jar"]

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import net.kigawa.fonsole.config.ProjectConfig
 import net.kigawa.fonsole.document.BackupDocument
+import net.kigawa.fonsole.logger
 import net.kigawa.fonsole.model.DirectoryModel
 import net.kigawa.fonsole.model.FileModel
 import net.kigawa.fonsole.mongo.Database
@@ -17,7 +18,6 @@ import net.kigawa.kutil.domain.result.ErrorResult
 import net.kigawa.kutil.domain.result.Result
 import net.kigawa.kutil.domain.result.SuccessResult
 import org.bson.types.ObjectId
-import org.slf4j.Logger
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
@@ -27,11 +27,11 @@ import kotlin.io.path.*
 
 class BackupEditor(
     private val projectConfig: ProjectConfig,
-    private val logger: Logger,
     database: Database,
 ) {
     private val collection = database.getCollection(BackupDocument::class)
     private val bucket = database.createBucket(BackupDocument::class.simpleName!!)
+    private val logger = logger()
 
     private suspend fun uploadDirectory(currentDirectory: Path): Deferred<DirectoryModel> {
         val files = currentDirectory.listDirectoryEntries().filter { !it.isDirectory() }.map { uploadFile(it) }
@@ -50,7 +50,7 @@ class BackupEditor(
             logger.debug("open file {}", file)
             Files.newByteChannel(file).use {
                 bucket.request {
-                    val uploadSubscriber = ChannelSubscriber<ObjectId>(logger, capacity = 1)
+                    val uploadSubscriber = ChannelSubscriber<ObjectId>(capacity = 1)
                     logger.info("upload file ${file.name}")
                     val fileReadPublisher = FileReadPublisher(it)
                     uploadFromPublisher(file.name, fileReadPublisher).subscribe(uploadSubscriber)
@@ -145,7 +145,7 @@ class BackupEditor(
     private suspend fun downloadFile(fileModel: FileModel, file: Path): Deferred<Result<Unit, Unit>> {
         return CoroutineScope(currentCoroutineContext()).async {
             bucket.request {
-                val subscriber = ChannelSubscriber<ByteBuffer>(logger)
+                val subscriber = ChannelSubscriber<ByteBuffer>()
                 val publisher = downloadToPublisher(fileModel.id)
                 publisher.subscribe(subscriber)
                 file.createFile()
@@ -220,7 +220,7 @@ class BackupEditor(
     private suspend fun removeFile(fileModel: FileModel): Job {
         return CoroutineScope(currentCoroutineContext()).launch {
             bucket.request {
-                val subscriber = ChannelSubscriber<Any>(logger)
+                val subscriber = ChannelSubscriber<Any>()
                 delete(fileModel.id).subscribe(subscriber)
                 subscriber.join()
             }
