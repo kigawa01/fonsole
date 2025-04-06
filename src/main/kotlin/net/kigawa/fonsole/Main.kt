@@ -1,12 +1,10 @@
 package net.kigawa.fonsole
 
 import ch.qos.logback.classic.Logger
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import net.kigawa.fonsole.config.EnvironmentConfig
 import org.slf4j.LoggerFactory
+import kotlin.system.exitProcess
 
 object Main {
     val config by lazy { EnvironmentConfig() }
@@ -28,15 +26,21 @@ object Main {
             val first = argList.removeFirst()
             Cmds.entries.forEach { cmd ->
                 if (first == cmd.command) {
-                    val job = CoroutineScope(Dispatchers.Default).launch {
+                    val handler = CoroutineExceptionHandler { _, exception ->
+                        throw RuntimeException(exception)
+                    }
+                    val job = CoroutineScope(Dispatchers.Default).launch(handler) {
                         cmd.execute()
                     }
-                    runBlocking { job.join() }
+                    runBlocking {
+                        job.join()
+                    }
                     logger.info("job completed ${cmd.command}")
                     return
                 }
             }
         }
         logger.error("subcommand not found")
+        exitProcess(1)
     }
 }
