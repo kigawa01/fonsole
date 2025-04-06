@@ -9,20 +9,21 @@ import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.selects.SelectClause1
+import net.kigawa.fonsole.logger
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import org.slf4j.Logger
 
 class ChannelSubscriber<T>(
-    private val logger: Logger,
     private val capacity: Int = 3,
 ) : Subscriber<T>, ReceiveChannel<T> {
     private val channel: Channel<T> = Channel(capacity = capacity)
     private var subscription: Subscription? = null
+    private val logger = logger()
     override fun onSubscribe(s: Subscription?) {
         s!!.request(capacity.toLong())
         subscription = s
     }
+
     override fun onNext(t: T?) {
         runBlocking {
             channel.send(t!!)
@@ -92,9 +93,10 @@ class ChannelSubscriber<T>(
         channel.cancel()
         return false
     }
-    suspend fun join(){
+
+    suspend fun join() {
         @Suppress("ControlFlowWithEmptyBody", "UseExpressionBody")
-        for (a in this){
+        for (a in this) {
         }
     }
 }

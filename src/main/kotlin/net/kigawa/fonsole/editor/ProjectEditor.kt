@@ -7,21 +7,21 @@ import com.mongodb.client.model.Updates
 import kotlinx.coroutines.flow.firstOrNull
 import net.kigawa.fonsole.config.ProjectConfig
 import net.kigawa.fonsole.document.ProjectDocument
+import net.kigawa.fonsole.logger
 import net.kigawa.fonsole.mongo.Database
 import net.kigawa.kutil.domain.result.ErrorResult
 import net.kigawa.kutil.domain.result.Result
 import net.kigawa.kutil.domain.result.SuccessResult
 import org.bson.types.ObjectId
-import org.slf4j.Logger
 
 class ProjectEditor(
     database: Database,
-    private val logger: Logger,
     private val projectConfig: ProjectConfig,
 ) {
     private val collection = database.getCollection(ProjectDocument::class)
+    private val logger = logger()
 
-    suspend fun createProject() {
+    suspend fun setupProject() {
         logger.info("setup unique index")
         val indexOptions = IndexOptions().unique(true)
         collection.request {

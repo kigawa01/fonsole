@@ -6,6 +6,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import net.kigawa.fonsole.config.ConnectionConfig
 
+
 class Client(
     connectionConfig: ConnectionConfig,
     client: MongoClient,
