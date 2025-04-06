@@ -2,7 +2,7 @@ FROM gradle:jdk21 AS builder
 
 WORKDIR /app
 COPY ./ ./
-RUN gradle run shadowJar
+RUN gradle shadowJar
 
 
 FROM openjdk:21-bookworm AS runner
