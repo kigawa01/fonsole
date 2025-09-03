@@ -40,7 +40,7 @@ class EnvironmentConfig {
     }
     val restoreConfig by lazy {
         RestoreConfig(
-            restoreDate = readDate("RESTORE_DATE")
+            restoreDate = readDateOrToday("RESTORE_DATE")
         )
     }
 
@@ -56,10 +56,8 @@ class EnvironmentConfig {
     private fun readPath(key: String, defaultValue: Path? = null): Path =
         readEnv(key)?.let { Path.of("", it) } ?: defaultValue ?: throw IllegalArgumentException("$key is not defined")
 
-    private fun readDate(key: String, defaultValue: LocalDateTime? = null): LocalDateTime =
+    private fun readDateOrToday(key: String, defaultValue: LocalDateTime? = null): LocalDateTime =
         readEnv(key)?.let { LocalDateTime.parse(it, datetimeFormatter) } ?: defaultValue
-        ?: throw IllegalArgumentException(
-            "$key is not defined"
-        )
+        ?: LocalDateTime.now()
 
 }
