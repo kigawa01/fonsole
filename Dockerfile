@@ -1,11 +1,11 @@
-FROM gradle:jdk21 AS builder
+FROM eclipse-temurin:21-jre-noble AS builder
 
 WORKDIR /app
 COPY ./ ./
-RUN gradle shadowJar
+RUN ./gradlew shadowJar
 
 
-FROM openjdk:21-bookworm AS runner
+FROM eclipse-temurin:21-jre-noble AS runner
 WORKDIR /app
 COPY --from=builder /app/build/libs/fonsole-all.jar /app
 ENTRYPOINT ["java","-jar", "/app/fonsole-all.jar"]
