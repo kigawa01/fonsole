@@ -1,8 +1,8 @@
-FROM eclipse-temurin:21-jre-noble AS builder
+FROM eclipse-temurin:21-jdk-noble AS builder
 
 WORKDIR /app
 COPY ./ ./
-RUN ./gradlew shadowJar
+RUN chmod +x ./gradlew && ./gradlew shadowJar
 
 
 FROM eclipse-temurin:21-jre-noble AS runner
